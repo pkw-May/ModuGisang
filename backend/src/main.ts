@@ -11,6 +11,7 @@ async function bootstrap() {
   app.use(cookieParser());
 
   const allowedOrigins = configService.get<string>('CORS_ORIGINS').split(',');
+  allowedOrigins.push('capacitor://localhost');
 
   const port = configService.get<number>('NEST_PORT');
 
