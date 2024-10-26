@@ -180,17 +180,21 @@ export class ChallengesService {
     console.log(`User ${userId} has given up challenge ${challengeId}`);
   }
 
-  async searchAvailableMate(email: string): Promise<boolean> {
+  async searchAvailableMate(email: string, userId: number): Promise<boolean> {
     const availUser = await this.userRepository.findOne({
       where: { email: email },
     });
     if (!availUser) {
-      return null;
+      throw new NotFoundException('존재하지 않은 유저입니다.');
     }
-    if (availUser.challengeId > 0) {
-      return true;
+    if (availUser._id !== userId) {
+      if (availUser.challengeId > 0) {
+        return true;
+      } else {
+        return false;
+      }
     } else {
-      return false;
+      throw new BadRequestException('본인은 초대할 수 없습니다.');
     }
   }
 
