@@ -184,6 +184,9 @@ export class ChallengesService {
     const availUser = await this.userRepository.findOne({
       where: { email: email },
     });
+    if (!availUser) {
+      throw new NotFoundException('존재하지 않은 유저입니다.');
+    }
     if (availUser._id !== userId) {
       if (availUser.challengeId > 0) {
         return true;
