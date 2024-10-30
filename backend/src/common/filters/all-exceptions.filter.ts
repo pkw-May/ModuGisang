@@ -45,7 +45,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
   }
 
   filterSensitiveInfo(data: any) {
-    const fieldsToMask = ['password', 'token', 'cookie'];
+    const fieldsToMask = process.env.SENSITIVE_FIELDS?.split(',') || [];
     const maskedData = { ...data };
 
     for (const field of fieldsToMask) {
