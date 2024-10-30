@@ -26,6 +26,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
       exception instanceof Error ? exception.stack : '',
     );
 
+    // 요청 관련 정보 로깅
+    this.logger.log(`Request Method: ${request.method}`);
+    this.logger.log(`Request URL: ${request.url}`);
+    this.logger.log(`Request Headers: ${JSON.stringify(request.headers)}`);
+    this.logger.log(`Request Body: ${JSON.stringify(request.body)}`);
+
     // 예외 응답 전송
     response.status(status).json({
       statusCode: status,
