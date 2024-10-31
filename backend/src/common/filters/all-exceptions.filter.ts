@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Logger } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { filterSensitiveInfo } from '../../utils/filter.util';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -22,8 +23,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       exception instanceof HttpException ? exception.getResponse() : exception;
 
     // 민감 정보 필터링 적용
-    const filteredBody = this.filterSensitiveInfo(request.body);
-    const filteredHeaders = this.filterSensitiveInfo(request.headers);
+    const filteredBody = filterSensitiveInfo(request.body);
+    const filteredHeaders = filterSensitiveInfo(request.headers);
 
     this.logger.error(
       `Http Status: ${status} Error Message: ${JSON.stringify(message)}`,
@@ -42,18 +43,5 @@ export class AllExceptionsFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
       path: request.url,
     });
-  }
-
-  filterSensitiveInfo(data: any) {
-    const fieldsToMask = process.env.SENSITIVE_FIELDS?.split(',') || [];
-    const maskedData = { ...data };
-
-    for (const field of fieldsToMask) {
-      if (maskedData[field]) {
-        maskedData[field] = '****'; // 민감 정보 마스킹
-      }
-    }
-
-    return maskedData;
   }
 }
