@@ -217,6 +217,7 @@ export class ChallengesService {
     }
     return null;
   }
+
   async sendInvitation(challengeId: number, email: string): Promise<void> {
     console.log('sendInvitation', email);
     const user = await this.userRepository.findOne({
@@ -485,8 +486,7 @@ export class ChallengesService {
         `Challenge with ID ${challengeId} is already completed.`,
       );
     }
-    await this.userService.resetChallenge(userId); // 2.user 챌린지 정보를 -1로 변경
-
+    await this.userService.resetChallenge(userId); // 2.user 챌린지 정보 초기화 (challengeId = -1, openviduToekn = null )
     // 3. 메달처리
     // 기간별로 90%이상 80점 이상 달성시 메달 획득 금 100 은 30 동 7
     const qualifiedDaysCount = await this.attendanceRepository.count({
