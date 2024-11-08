@@ -50,6 +50,19 @@ export class ChallengesService {
   }
 
   async createChallenge(challenge: CreateChallengeDto): Promise<Challenges> {
+    const user = await this.userService.findOneByID(challenge.hostId);
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${challenge.hostId} not found`);
+    }
+
+    // challengeId가 -1이 아닌 경우 새로운 챌린지 생성 불가
+    if (user.challengeId !== -1) {
+      throw new BadRequestException(
+        'User is not eligible to create a new challenge. Please complete the existing challenge first.',
+      );
+    }
+
     this.validateStartAndWakeTime(challenge.startDate, challenge.wakeTime);
     this.validateDuration(challenge.duration);
 
