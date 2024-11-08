@@ -4,6 +4,7 @@ import {
   HttpException,
   HttpStatus,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { Challenges } from './challenges.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -53,13 +54,15 @@ export class ChallengesService {
     const user = await this.userService.findOneByID(challenge.hostId);
 
     if (!user) {
-      throw new NotFoundException(`User with ID ${challenge.hostId} not found`);
+      throw new NotFoundException(
+        `해당 ID(${challenge.hostId})를 가지는 유저는 존재하지 않습니다.`,
+      );
     }
 
     // challengeId가 -1이 아닌 경우 새로운 챌린지 생성 불가
     if (user.challengeId !== -1) {
-      throw new BadRequestException(
-        'User is not eligible to create a new challenge. Please complete the existing challenge first.',
+      throw new ConflictException(
+        '챌린지를 생성하기 전에 기존 챌린지를 완료해야 합니다.',
       );
     }
 
@@ -211,24 +214,20 @@ export class ChallengesService {
     }
   }
 
-  async hostChallengeStatus(hostId: number): Promise<number> {
-    const challengeId = await this.challengeRepository
-      .createQueryBuilder('challenges')
-      .innerJoin('challenges.host', 'users')
-      .where('challenges.hostId = :hostId', { hostId })
-      .andWhere('users.deletedAt IS NULL') // 소프트 삭제된 유저 제외
-      .getOne();
-
-    const user = await this.userRepository.findOneBy({
-      _id: hostId,
-    });
-    if (user && challengeId) {
-      user.challengeId = challengeId._id;
-      await this.userRepository.save(user);
-      await this.redisCacheService.del(`userInfo:${hostId}`);
-      return challengeId._id;
+  async updateUserChallenge(
+    userId: number,
+    challengeId: number,
+  ): Promise<void> {
+    const user = await this.userRepository.findOneBy({ _id: userId });
+    if (!user) {
+      throw new NotFoundException(
+        `해당 ID(${userId})를 가지는 유저가 존재하지 않습니다.`,
+      );
     }
-    return null;
+
+    user.challengeId = challengeId;
+    await this.userRepository.save(user);
+    await this.redisCacheService.del(`userInfo:${userId}`);
   }
 
   async sendInvitation(challengeId: number, email: string): Promise<void> {
